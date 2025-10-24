@@ -1,10 +1,12 @@
 
 out/
 *.class
+*.iml
+
 
 .idea/
 .vscode/
-*.iml
+
 
 data/*.ser
 !data/.gitkeep
