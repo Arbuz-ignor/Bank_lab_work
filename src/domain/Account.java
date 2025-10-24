@@ -4,7 +4,9 @@ import java.io.Serializable;
 import java.util.Objects;
 
 
-public class Account implements Serializable {
+public class Account implements Serializable
+{
+    // нужен для сериализации, фиксирует версию класса
     private static final long serialVersionUID = 1L;
 
     private final String number;
@@ -14,9 +16,10 @@ public class Account implements Serializable {
     private long balance;
 
 
-    public Account(String number, String owner, String bik, String kpp, long balance) {
+    public Account(String number, String owner, String bik, String kpp, long balance)
+    {
         if (balance < 0) throw new IllegalArgumentException("Баланс не может быть отрицательным");
-
+        // Реквизиты фиксируются навсегда, менять их после создания нельзя
         this.number = Objects.requireNonNull(number);
         this.owner  = Objects.requireNonNull(owner);
         this.bik    = Objects.requireNonNull(bik);
