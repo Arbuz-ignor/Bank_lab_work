@@ -34,32 +34,77 @@ public class Main {
             String choice = in.nextLine().trim();
             switch (choice)
             {
-                case "0": menu(); break;
+                case "0": menu();
+                break;
 
                 case "1":
                     System.out.print("ФИО владельца: ");
-                    String owner = in.nextLine().trim();
                     try
                     {
-                        Account a = svc.createAccount(owner);
+                        Account a = svc.createAccount(in.nextLine().trim());
                         System.out.println("\nСчёт создан\n" + a);
-                    } catch (Exception e) { System.out.println("Ошибка: " + e.getMessage()); }
+                    }
+                    catch (Exception e)
+                    {
+                        System.out.println("Ошибка: " + e.getMessage());
+                    }
                     break;
 
                 case "2":
+                    System.out.print("Номер счёта: "); String n1 = in.nextLine().trim();
+                    System.out.print("Сумма: "); String s1 = in.nextLine().trim();
+                    if (!s1.matches("\\d+"))
+                    {
+                        System.out.println("Сумма должна быть числом");
+                        break;
+                    }
+                    try {
+                        System.out.println("\nУспешное пополнение\n" + "Баланс: " + svc.deposit(n1, Long.parseLong(s1)) + " RUB"); }
+                    catch (Exception e)
+                    {
+                        System.out.println("Ошибка: " + e.getMessage());
+                    }
+                    break;
+
                 case "3":
-                    System.out.println("Эта функция ");
+                    System.out.print("Номер счёта: "); String n2 = in.nextLine().trim();
+                    System.out.print("Сумма: "); String s2 = in.nextLine().trim();
+                    if (!s2.matches("\\d+"))
+                    {
+                        System.out.println("Сумма должна быть числом");
+                        break;
+                    }
+                    try
+                    {
+                        System.out.println("\nУспешное списание\n" + "Баланс: " + svc.withdraw(n2, Long.parseLong(s2)) + " RUB");
+                    }
+                    catch (Exception e)
+                    {
+                        System.out.println("Ошибка: " + e.getMessage());
+                    }
                     break;
 
                 case "4":
                     System.out.print("Введите номер счёта: ");
-                    try { System.out.println("Баланс: " + svc.getBalance(in.nextLine().trim()) + " RUB"); }
+                    try { System.out.println("\nБаланс: " + svc.getBalance(in.nextLine().trim()) + " RUB"); }
                     catch (Exception e) { System.out.println("Ошибка: " + e.getMessage()); }
                     break;
 
                 case "5":
+                    System.out.print("Номер счёта: "); String n4 = in.nextLine().trim();
+                    try
+                    {
+                        List<Transaction> list = svc.listTransactions(n4);
+                        list.forEach(t -> System.out.println(t + "\n"));
+                    }
+                    catch (NoSuchElementException e)
+                    {
+                        System.out.println("Транзакций нет");
+                    }
+                    break;
+
                 case "6":
-                    System.out.println("Эта функция поя");
+                    System.out.println("Эта функция пока загрушка");
                     break;
 
                 case "7":

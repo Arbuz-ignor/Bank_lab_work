@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.LinkedHashSet;
+import java.io.*;
+import java.nio.file.*;
 
 public class BankService
 {
@@ -25,13 +27,56 @@ public class BankService
     private final Map<String, List<Account>> byKpp = new HashMap<>();
     private static final DateTimeFormatter TS = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
+    // где лежат файлы
+    private final Path dataDir = Path.of("data");
+    private final Path accSer  = dataDir.resolve("accounts.ser");
+    private final Path txSer   = dataDir.resolve("transactions.ser");
+
     public void loadData()
     {
-        // пока ничего серелизация позже появится
+        try
+        {
+            // на случай чистого проекта
+            Files.createDirectories(dataDir);
+            if (Files.exists(accSer)) {
+                try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(accSer))) {
+                    @SuppressWarnings("unchecked")
+                    List<Account> list = (List<Account>) ois.readObject();
+                    for (Account a : list) accounts.put(a.getNumber(), a);
+                }
+            }
+            if (Files.exists(txSer))
+            {
+                try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(txSer))) {
+                    @SuppressWarnings("unchecked")
+                    List<Transaction> list = (List<Transaction>) ois.readObject();
+                    transactions.addAll(list);
+                }
+            }
+        } catch (Exception e) {
+            // произошла ошибка
+            System.out.println("Ошибка чтения данных: " + e.getMessage());
+        }
+        rebuildIndexes();
     }
+
     public void saveData()
     {
-        // пока ничего серелизация позже появится
+        try {
+            Files.createDirectories(dataDir);
+            // атомарная запись, сначала tmp, потом move
+            Path tmpAcc = Files.createTempFile("acc", ".ser");
+            Path tmpTx  = Files.createTempFile("tx",  ".ser");
+            try (ObjectOutputStream o1 = new ObjectOutputStream(Files.newOutputStream(tmpAcc));
+                 ObjectOutputStream o2 = new ObjectOutputStream(Files.newOutputStream(tmpTx))) {
+                o1.writeObject(new ArrayList<>(accounts.values()));
+                o2.writeObject(new ArrayList<>(transactions));
+            }
+            Files.move(tmpAcc, accSer, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            Files.move(tmpTx,  txSer,  StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (IOException e) {
+            System.out.println("Ошибка записи данных: " + e.getMessage());
+        }
     }
 
     public Account createAccount(String owner)
@@ -46,6 +91,7 @@ public class BankService
         Account acc = new Account(number, owner.trim(), bik, kpp, 0);
         accounts.put(number, acc);
         rebuildIndexes();
+        saveData();
         return acc;
     }
 
@@ -62,21 +108,25 @@ public class BankService
         a.deposit(amount);
         // фиксируем факт операции
         transactions.add(new Transaction(shortUuid(), number, amount, now(), "Пополнение", a.getBalance()));
+        saveData();
         return a.getBalance();
     }
 
-    public long withdraw(String number, long amount) {
+    public long withdraw(String number, long amount)
+    {
         Account a = accounts.get(number);
         if (a == null) throw new NoSuchElementException("Счёт не найден");
         a.withdraw(amount);
-        transactions.add(new Transaction(shortUuid(), number, amount, now(), "Перевод", a.getBalance()));
+        transactions.add(new Transaction(shortUuid(), number, amount, now(), "Списание", a.getBalance()));
+        saveData();
         return a.getBalance();
     }
 
     public List<Transaction> listTransactions(String number)
     {
         List<Transaction> list = new ArrayList<>();
-        for (Transaction t : transactions) {
+        for (Transaction t : transactions)
+        {
             if (t.getNumber().equals(number)) list.add(t);
         }
         if (list.isEmpty()) throw new NoSuchElementException("Транзакций нет");
