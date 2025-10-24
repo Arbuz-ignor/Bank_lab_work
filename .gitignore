@@ -1,0 +1,10 @@
+
+out/
+*.class
+
+.idea/
+.vscode/
+*.iml
+
+data/*.ser
+!data/.gitkeep
