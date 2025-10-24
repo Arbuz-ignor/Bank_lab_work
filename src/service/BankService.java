@@ -17,6 +17,9 @@ public class BankService
     public static final int KPP_LN = 9;
 
     // Основные структуры
+    // accounts хранит все счета, что по номеру
+    // transactions журнал операций
+    // by* индексы для ускоренного поиска
     private final Map<String, Account> accounts = new HashMap<>();
     private final List<Transaction> transactions = new ArrayList<>();
 
@@ -32,6 +35,7 @@ public class BankService
     private final Path accSer  = dataDir.resolve("accounts.ser");
     private final Path txSer   = dataDir.resolve("transactions.ser");
 
+    // сериализация данных в .ser-файлы
     public void loadData()
     {
         try
@@ -79,6 +83,7 @@ public class BankService
         }
     }
 
+    // создаёт новый счёт с рандомными реквезитами
     public Account createAccount(String owner)
     {
         if (owner == null || owner.isBlank())
@@ -133,7 +138,7 @@ public class BankService
         return list;
     }
 
-
+    // поиск по всем реквизитам, сначала точный, потом подстрочный
     public List<Account> search(String query)
     {
         String q = query == null ? "" : query.trim();
@@ -162,14 +167,14 @@ public class BankService
         return new ArrayList<>(result);
     }
 
-
+    // пересоздаёт индексы после загрузки данных, а еще добавления счёта
     private void rebuildIndexes()
     {
         byNumber.clear(); byOwner.clear(); byBik.clear(); byKpp.clear();
         for (Account a : accounts.values())
         {
             byNumber.put(a.getNumber(), a);
-            // computeIfAbsent — если по ключу ещё нет списка, создаёт его и кладёт в map
+            // computeIfAbsent если по ключу ещё нет списка, создаёт его и кладёт в map
             byOwner.computeIfAbsent(a.getOwner().toLowerCase(), k -> new ArrayList<>()).add(a);
             byBik.computeIfAbsent(a.getBik(), k -> new ArrayList<>()).add(a);
             byKpp.computeIfAbsent(a.getKpp(), k -> new ArrayList<>()).add(a);

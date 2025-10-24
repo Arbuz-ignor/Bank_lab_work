@@ -45,7 +45,7 @@ public class Main {
             try
             {
                 long bal = svc.deposit(num, Long.parseLong(s));
-                System.out.println("\nУспшеное пополенение\n" + "Баланс: " + bal + " RUB");
+                System.out.println("\nУспешное пополнение\n" + "Баланс: " + bal + " RUB");
             } catch (Exception e)
             {
                 System.out.println("Ошибка: " + e.getMessage());
@@ -60,13 +60,13 @@ public class Main {
             String s = in.nextLine().trim();
             if (!s.matches("\\d+"))
             {
-                System.out.println("Сумма должна быть числом.");
+                System.out.println("Сумма должна быть числом");
                 return;
             }
             try
             {
                 long bal = svc.withdraw(num, Long.parseLong(s));
-                System.out.println("\nУспееное списание\n" +"Баланс: " + bal + " RUB");
+                System.out.println("\nУспешное списание\n" +"Баланс: " + bal + " RUB");
             } catch (Exception e)
             {
                 System.out.println("Ошибка: " + e.getMessage());
@@ -103,7 +103,7 @@ public class Main {
 
         actions.put(6, () ->
         {
-            System.out.print("Запрос (номер/БИК/КПП/ФИО): ");
+            System.out.print("Запрос (Номер счета/БИК/КПП/ФИО): ");
             String q = in.nextLine();
             try
             {
@@ -119,7 +119,7 @@ public class Main {
         actions.put(7, () ->
         {
             svc.saveData(); // финальное сохранение на выходе
-            System.out.println("👋 Выход");
+            System.out.println("Выход");
             System.exit(0);
         });
 
@@ -150,11 +150,11 @@ public class Main {
                 }
             } catch (NumberFormatException e)
             {
-                System.out.println("Введите число от 1 до " + actions.size());
+                System.out.println("Введите число от 0 до 7");
             }
         }
     }
-
+    // отдельная функция для показа меню, чтобы не дублировать код
     private static void showMenu()
 
     {
