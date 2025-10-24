@@ -31,9 +31,9 @@ public class Transaction implements Serializable
     public String getType() { return type; }
     public long getBalanceAfter() { return balance_after; }
 
+
     @Override
-    public String toString()
-    {
+    public String toString() {
         return "Операция: " + txId + "\n" +
                 "Счёт: " + number + "\n" +
                 "Тип: " + type + "\n" +
