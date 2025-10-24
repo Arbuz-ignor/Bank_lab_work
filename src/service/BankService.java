@@ -5,6 +5,7 @@ import domain.Transaction;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.LinkedHashSet;
 
 public class BankService
 {
@@ -47,14 +48,16 @@ public class BankService
         if (a == null) throw new NoSuchElementException("Счёт не найден");
         return a.getBalance();
     }
+
     public long deposit(String number, long amount) {
         Account a = accounts.get(number);
         if (a == null) throw new NoSuchElementException("Счёт не найден");
         a.deposit(amount);
-        // фиксируем факт операции — иначе история “потеряется”
+        // фиксируем факт операции
         transactions.add(new Transaction(shortUuid(), number, amount, now(), "Пополнение", a.getBalance()));
         return a.getBalance();
     }
+
     public long withdraw(String number, long amount) {
         Account a = accounts.get(number);
         if (a == null) throw new NoSuchElementException("Счёт не найден");
@@ -62,6 +65,7 @@ public class BankService
         transactions.add(new Transaction(shortUuid(), number, amount, now(), "Перевод", a.getBalance()));
         return a.getBalance();
     }
+
     public List<Transaction> listTransactions(String number) {
         List<Transaction> list = new ArrayList<>();
         for (Transaction t : transactions) {
@@ -70,7 +74,34 @@ public class BankService
         if (list.isEmpty()) throw new NoSuchElementException("Транзакций нет");
         return list;
     }
-    public List<Account> search(String q) { return List.of(); }
+
+
+    public List<Account> search(String query)
+    {
+        String q = query == null ? "" : query.trim();
+        if (q.isEmpty()) return List.of();
+        String qLower = q.toLowerCase();
+
+        // Чтобы не было дублей и сохранялся порядок нахождения
+        LinkedHashSet<Account> result = new LinkedHashSet<>();
+
+        // Точное совпадение номера
+        Account exact = accounts.get(q);
+        if (exact != null) result.add(exact);
+
+        // подстрока по всем полям
+        for (Account a : accounts.values())
+        {
+            if (a.getNumber().contains(q) ||
+                    a.getBik().contains(q) ||
+                    a.getKpp().contains(q) ||
+                    a.getOwner().toLowerCase().contains(qLower)) {
+                result.add(a);
+            }
+        }
+        if (result.isEmpty()) throw new NoSuchElementException("Счёт не найден");
+        return new ArrayList<>(result);
+    }
 
     // пока без хранения и индексов
     private static String randomDigits(int n) {
