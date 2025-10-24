@@ -47,11 +47,29 @@ public class BankService
         if (a == null) throw new NoSuchElementException("Счёт не найден");
         return a.getBalance();
     }
-
-    // заглушки
-    public long deposit(String n, long amt) { throw new UnsupportedOperationException("ещё не реализовано"); }
-    public long withdraw(String n, long amt) { throw new UnsupportedOperationException("ещё не реализовано"); }
-    public List<Transaction> listTransactions(String n) { return List.of(); }
+    public long deposit(String number, long amount) {
+        Account a = accounts.get(number);
+        if (a == null) throw new NoSuchElementException("Счёт не найден");
+        a.deposit(amount);
+        // фиксируем факт операции — иначе история “потеряется”
+        transactions.add(new Transaction(shortUuid(), number, amount, now(), "Пополнение", a.getBalance()));
+        return a.getBalance();
+    }
+    public long withdraw(String number, long amount) {
+        Account a = accounts.get(number);
+        if (a == null) throw new NoSuchElementException("Счёт не найден");
+        a.withdraw(amount);
+        transactions.add(new Transaction(shortUuid(), number, amount, now(), "Перевод", a.getBalance()));
+        return a.getBalance();
+    }
+    public List<Transaction> listTransactions(String number) {
+        List<Transaction> list = new ArrayList<>();
+        for (Transaction t : transactions) {
+            if (t.getNumber().equals(number)) list.add(t);
+        }
+        if (list.isEmpty()) throw new NoSuchElementException("Транзакций нет");
+        return list;
+    }
     public List<Account> search(String q) { return List.of(); }
 
     // пока без хранения и индексов
